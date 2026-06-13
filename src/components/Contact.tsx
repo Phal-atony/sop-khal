@@ -1,187 +1,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-<<<<<<< HEAD
-import { Mail, MapPin, Globe, Send, CheckCircle2 } from 'lucide-react';
-=======
 import { CheckCircle2, Globe2, Mail, MapPin, Send } from 'lucide-react';
->>>>>>> ee6f415 (fixed damn)
 import { fadeInUp, staggerContainer, staggerItem } from '../lib/animations';
 
 const contactInfo = [
   { icon: Mail, label: 'Email', value: 'hello@example.com', href: 'mailto:hello@example.com' },
   { icon: MapPin, label: 'Location', value: 'Cambodia', href: null },
-<<<<<<< HEAD
-  { icon: Globe, label: 'Website', value: 'JASMINTOPUP', href: 'https://www.jasmintopup.site' },
-=======
   { icon: Globe2, label: 'Website', value: 'JASMINTOPUP', href: 'https://www.jasmintopup.site' },
->>>>>>> ee6f415 (fixed damn)
 ];
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-<<<<<<< HEAD
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setForm({ name: '', email: '', subject: '', message: '' });
-      setIsSubmitted(false);
-    }, 3000);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  return (
-    <section id="contact" className="py-24 bg-slate-900 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950" />
-      <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="text-center mb-16"
-        >
-          <motion.span variants={fadeInUp} className="text-violet-400 font-semibold text-sm uppercase tracking-wider">
-            Get In Touch
-          </motion.span>
-          <motion.h2 variants={fadeInUp} className="text-3xl sm:text-4xl lg:text-5xl font-bold mt-4">
-            Let's Work{' '}
-            <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Together</span>
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-gray-400 mt-4 max-w-2xl mx-auto">
-            Have a project in mind? Let's discuss how we can bring your ideas to life.
-          </motion.p>
-        </motion.div>
-
-        <div className="grid lg:grid-cols-5 gap-12">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="lg:col-span-3"
-          >
-            <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8">
-              {isSubmitted ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center justify-center py-12"
-                >
-                  <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-green-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
-                  <p className="text-gray-400 text-center">Thank you for reaching out. I'll get back to you soon.</p>
-                </motion.div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">Name</label>
-                      <input
-                        type="text" id="name" name="name" value={form.name} onChange={handleChange} required
-                        className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
-                        placeholder="Your name"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-                      <input
-                        type="email" id="email" name="email" value={form.email} onChange={handleChange} required
-                        className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
-                        placeholder="your@email.com"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
-                    <input
-                      type="text" id="subject" name="subject" value={form.subject} onChange={handleChange} required
-                      className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
-                      placeholder="What's this about?"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">Message</label>
-                    <textarea
-                      id="message" name="message" value={form.message} onChange={handleChange} required rows={5}
-                      className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors resize-none"
-                      placeholder="Tell me about your project..."
-                    />
-                  </div>
-                  <motion.button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-violet-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        Send Message
-                      </>
-                    )}
-                  </motion.button>
-                </form>
-              )}
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={staggerContainer}
-            className="lg:col-span-2 space-y-4"
-          >
-            {contactInfo.map((info, i) => {
-              const Icon = info.icon;
-              const content = (
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center group-hover:from-violet-500/30 group-hover:to-purple-500/30 transition-colors">
-                    <Icon className="w-5 h-5 text-violet-400" />
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-sm">{info.label}</p>
-                    <p className="text-white font-medium">{info.value}</p>
-                  </div>
-                </div>
-              );
-              return (
-                <motion.div key={i} variants={staggerItem} whileHover={{ x: 5 }} className="group">
-                  {info.href ? (
-                    <a
-                      href={info.href}
-                      target={info.href.startsWith('http') ? '_blank' : undefined}
-                      rel={info.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                      className="block bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-violet-500/30 hover:bg-slate-800/50 transition-all"
-                    >
-                      {content}
-                    </a>
-                  ) : (
-                    <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5">
-                      {content}
-                    </div>
-=======
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -312,23 +141,10 @@ export default function Contact() {
                     </a>
                   ) : (
                     <div className="glass-card rounded-3xl p-5">{body}</div>
->>>>>>> ee6f415 (fixed damn)
                   )}
                 </motion.div>
               );
             })}
-<<<<<<< HEAD
-            <motion.div
-              variants={staggerItem}
-              className="bg-gradient-to-br from-violet-600/10 to-purple-600/10 border border-violet-500/20 rounded-xl p-6"
-            >
-              <p className="text-gray-300 text-sm leading-relaxed">
-                I'm currently available for freelance projects. Whether you need a new website, dashboard, or payment
-                integration, feel free to reach out.
-              </p>
-            </motion.div>
-          </motion.div>
-=======
 
             <motion.div variants={staggerItem} className="glass-card overflow-hidden rounded-[2rem] p-3">
               <iframe
@@ -339,7 +155,6 @@ export default function Contact() {
               />
             </motion.div>
           </motion.aside>
->>>>>>> ee6f415 (fixed damn)
         </div>
       </div>
     </section>
