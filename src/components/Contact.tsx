@@ -4,9 +4,10 @@ import { CheckCircle2, Globe2, Mail, MapPin, Send } from 'lucide-react';
 import { fadeInUp, staggerContainer, staggerItem } from '../lib/animations';
 
 const contactInfo = [
-  { icon: Mail, label: 'Email', value: 'hello@example.com', href: 'mailto:hello@example.com' },
+  { icon: Mail, label: 'Email', value: 'phaltp1@gmail.com', href: 'mailto:phaltp1@gmail.com' },
+  { icon: Send, label: 'Telegram', value: 't.me/thephal', href: 'https://t.me/thephal' },
   { icon: MapPin, label: 'Location', value: 'Cambodia', href: null },
-  { icon: Globe2, label: 'Website', value: 'JASMINTOPUP', href: 'https://www.jasmintopup.site' },
+  { icon: Globe2, label: 'Website', value: 'JASMINTOPUP', href: 'https://www.jasmintopup.site/' },
 ];
 
 export default function Contact() {
@@ -145,15 +146,6 @@ export default function Contact() {
                 </motion.div>
               );
             })}
-
-            <motion.div variants={staggerItem} className="glass-card overflow-hidden rounded-[2rem] p-3">
-              <iframe
-                title="Cambodia map"
-                className="h-64 w-full rounded-[1.4rem] border-0 grayscale invert hue-rotate-180 saturate-150"
-                loading="lazy"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=102.0%2C9.8%2C107.8%2C14.8&layer=mapnik&marker=12.5657%2C104.9910"
-              />
-            </motion.div>
           </motion.aside>
         </div>
       </div>

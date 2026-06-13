@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, CreditCard, LayoutDashboard, Paintbrush, ShieldCheck, Smartphone, Workflow } from 'lucide-react';
 import { fadeInUp, staggerContainer, staggerItem } from '../lib/animations';
+import { smoothScrollToSection } from '../lib/smoothScroll';
 
 const services = [
   {
@@ -36,7 +37,7 @@ const services = [
 ];
 
 export default function Services() {
-  const scrollToContact = () => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToContact = () => smoothScrollToSection('contact', { offset: 84 });
 
   return (
     <section id="services" className="section-pad relative overflow-hidden">

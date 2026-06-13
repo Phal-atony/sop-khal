@@ -1,20 +1,26 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, Code2, Github, Globe2, Mail, Send, Zap } from 'lucide-react';
 import { blurIn, fadeInUp, staggerContainer, staggerItem } from '../lib/animations';
+import { smoothScrollToSection } from '../lib/smoothScroll';
+import profilePhoto from '../assets/profile-photo.png';
 
 const socials = [
-  { label: 'GitHub', icon: Github, href: '#projects' },
-  { label: 'Email', icon: Mail, href: '#contact' },
-  { label: 'Facebook', text: 'f', href: '#contact' },
-  { label: 'Website', icon: Globe2, href: 'https://www.jasmintopup.site' },
+  { label: 'GitHub', icon: Github, href: 'https://github.com/Phal-atony' },
+  { label: 'Email', icon: Mail, href: 'mailto:phaltp1@gmail.com' },
+  { label: 'Facebook', text: 'f', href: 'https://www.facebook.com/share/1BqMuFsXuP/' },
+  { label: 'Website', icon: Globe2, href: 'https://www.jasmintopup.site/' },
 ];
 
 export default function Hero() {
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  const scrollTo = (id: string) => smoothScrollToSection(id, { offset: 84 });
 
   const openSocial = (href: string) => {
     if (href.startsWith('#')) {
-      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+      smoothScrollToSection(href.slice(1), { offset: 84 });
+      return;
+    }
+    if (href.startsWith('mailto:')) {
+      window.location.href = href;
       return;
     }
     window.open(href, '_blank', 'noopener,noreferrer');
@@ -88,7 +94,7 @@ export default function Hero() {
                     className="social-square"
                     aria-label={social.label}
                   >
-                    {Icon ? <Icon className="h-5 w-5" /> : <span className="text-xl font-black">{social.text}</span>}
+                    {Icon ? <Icon className="h-6 w-6" /> : <span className="text-2xl font-black leading-none">{social.text}</span>}
                   </motion.button>
                 );
               })}
@@ -109,28 +115,32 @@ export default function Hero() {
               </div>
 
               <div className="portrait-frame">
-                <div className="avatar-art">
-                  <div className="avatar-sky" />
-                  <div className="avatar-head" />
-                  <div className="avatar-hood" />
-                  <div className="avatar-body" />
-                  <div className="avatar-initials">SP</div>
-                </div>
+                <video
+                  className="portrait-photo"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  poster={profilePhoto}
+                >
+                  <source src="/profile-live.mp4" type="video/mp4" />
+                </video>
               </div>
             </div>
           </motion.div>
         </motion.div>
       </div>
 
-      <button
-        onClick={() => scrollTo('contact')}
+      <a
+        href="https://t.me/thephal"
+        target="_blank"
+        rel="noopener noreferrer"
         className="floating-telegram"
-        aria-label="Contact"
-        type="button"
+        aria-label="Open Telegram"
       >
         <Send className="h-7 w-7 fill-white" />
-      </button>
-      <div className="floating-dot" />
+      </a>
       <Code2 className="absolute bottom-12 left-8 h-5 w-5 text-violet-400/35" />
     </section>
   );

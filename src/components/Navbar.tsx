@@ -1,64 +1,32 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ComponentType } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { smoothScrollToSection } from '../lib/smoothScroll';
+import {
+  Briefcase,
+  Layers3,
+  Home,
+  Mail,
+  Menu,
+  Sparkles,
+  Zap,
+  User,
+  X,
+} from 'lucide-react';
 
-const navLinks = [
-  { name: 'Home', href: 'home' },
-  { name: 'About', href: 'about' },
-  { name: 'Skills', href: 'skills' },
-  { name: 'Projects', href: 'projects' },
-  { name: 'Experience', href: 'experience' },
-  { name: 'Services', href: 'services' },
-  { name: 'Contact', href: 'contact' },
+const navLinks: { name: string; href: string; icon: ComponentType<{ className?: string }> }[] = [
+  { name: 'Home', href: 'home', icon: Home },
+  { name: 'About', href: 'about', icon: User },
+  { name: 'Skills', href: 'skills', icon: Zap },
+  { name: 'Projects', href: 'projects', icon: Layers3 },
+  { name: 'Experience', href: 'experience', icon: Briefcase },
+  { name: 'Services', href: 'services', icon: Sparkles },
+  { name: 'Contact', href: 'contact', icon: Mail },
 ];
 
 type NavSwitchStyle = CSSProperties & {
   '--active-index': number;
   '--nav-count': number;
 };
-
-let smoothScrollFrame: number | null = null;
-
-const easeOutExpo = (value: number) => (value === 1 ? 1 : 1 - Math.pow(2, -10 * value));
-
-function smoothScrollToSection(id: string) {
-  const section = document.getElementById(id);
-  if (!section) return;
-
-  if (smoothScrollFrame) {
-    window.cancelAnimationFrame(smoothScrollFrame);
-    smoothScrollFrame = null;
-  }
-
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const headerOffset = 92;
-  const start = window.scrollY;
-  const target = Math.max(0, section.getBoundingClientRect().top + window.scrollY - headerOffset);
-  const distance = target - start;
-
-  if (reduceMotion || Math.abs(distance) < 8) {
-    window.scrollTo({ top: target });
-    return;
-  }
-
-  const duration = Math.min(980, Math.max(520, Math.abs(distance) * 0.36));
-  let startTime: number | null = null;
-
-  const step = (time: number) => {
-    startTime ??= time;
-    const progress = Math.min((time - startTime) / duration, 1);
-
-    window.scrollTo(0, start + distance * easeOutExpo(progress));
-
-    if (progress < 1) {
-      smoothScrollFrame = window.requestAnimationFrame(step);
-    } else {
-      smoothScrollFrame = null;
-    }
-  };
-
-  smoothScrollFrame = window.requestAnimationFrame(step);
-}
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -117,10 +85,10 @@ export default function Navbar() {
   }, []);
 
   const scrollTo = (id: string) => {
-    clickedUntilRef.current = Date.now() + 950;
+    clickedUntilRef.current = Date.now() + 720;
     setActive(id);
     setOpen(false);
-    smoothScrollToSection(id);
+    smoothScrollToSection(id, { offset: 84 });
   };
 
   return (
@@ -183,9 +151,11 @@ export default function Navbar() {
             style={switchStyle}
           >
             <span aria-hidden="true" className="nav-switch-pill nav-switch-pill-mobile" />
+            <span aria-hidden="true" className="nav-mobile-frame-glow" />
 
             {navLinks.map((link, index) => {
               const isActive = active === link.href;
+              const Icon = link.icon;
 
               return (
                 <motion.button
@@ -197,7 +167,10 @@ export default function Navbar() {
                   className={`nav-switch-button nav-switch-button-mobile ${isActive ? 'nav-switch-button-active' : ''}`}
                   type="button"
                 >
-                  {link.name}
+                  <span className={`nav-mobile-icon-frame ${isActive ? 'nav-mobile-icon-frame-active' : ''}`}>
+                    <Icon className="h-[1.15rem] w-[1.15rem]" />
+                  </span>
+                  <span className="nav-mobile-label">{link.name}</span>
                 </motion.button>
               );
             })}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Music2, Volume2, AlertCircle } from 'lucide-react';
+import { Music2, Volume2 } from 'lucide-react';
 
 const clickableSelector = [
   'button',
@@ -19,10 +19,12 @@ type WebAudioWindow = Window & typeof globalThis & {
 const TRACK_TITLE = 'In Dreamland';
 const TRACK_ARTIST = 'Chillpeach';
 const TRACK_FILE_PATH = `${import.meta.env.BASE_URL}music/in-dreamland-chillpeach.mp3`;
+const CLICK_SOUND_PATH = `${import.meta.env.BASE_URL}sounds/click.wav`;
 
-const MASTER_VOLUME = 0.95;
-const TRACK_VOLUME = 0.95;
-const CLICK_VOLUME = 0.38;
+const MASTER_VOLUME = 1;
+const TRACK_VOLUME = 1;
+const CLICK_VOLUME = 1;
+const CLICK_POOL_SIZE = 10;
 
 const createGain = (context: AudioContext, value: number) => {
   const gain = context.createGain();
@@ -34,10 +36,16 @@ export default function SiteAudio() {
   const contextRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
   const trackRef = useRef<HTMLAudioElement | null>(null);
+  const clickPlayersRef = useRef<HTMLAudioElement[]>([]);
+  const clickIndexRef = useRef(0);
+  const clickBufferRef = useRef<AudioBuffer | null>(null);
+  const clickBufferLoadingRef = useRef(false);
   const musicStartedRef = useRef(false);
+  const triedMusicRef = useRef(false);
 
   const [started, setStarted] = useState(false);
   const [missingFile, setMissingFile] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     const audioWindow = window as WebAudioWindow;
@@ -48,15 +56,15 @@ export default function SiteAudio() {
     const getContext = () => {
       if (contextRef.current) return contextRef.current;
 
-      const context = new AudioContextClass();
+      const context = new AudioContextClass({ latencyHint: 'interactive' });
       const masterGain = createGain(context, MASTER_VOLUME);
       const compressor = context.createDynamicsCompressor();
 
-      compressor.threshold.setValueAtTime(-16, context.currentTime);
-      compressor.knee.setValueAtTime(16, context.currentTime);
-      compressor.ratio.setValueAtTime(4, context.currentTime);
-      compressor.attack.setValueAtTime(0.005, context.currentTime);
-      compressor.release.setValueAtTime(0.12, context.currentTime);
+      compressor.threshold.setValueAtTime(-14, context.currentTime);
+      compressor.knee.setValueAtTime(14, context.currentTime);
+      compressor.ratio.setValueAtTime(3, context.currentTime);
+      compressor.attack.setValueAtTime(0.003, context.currentTime);
+      compressor.release.setValueAtTime(0.1, context.currentTime);
 
       masterGain.connect(compressor);
       compressor.connect(context.destination);
@@ -74,15 +82,28 @@ export default function SiteAudio() {
       track.loop = true;
       track.preload = 'auto';
       track.volume = TRACK_VOLUME;
+      track.muted = false;
+      track.autoplay = false;
+      track.crossOrigin = 'anonymous';
+      track.setAttribute('playsinline', 'true');
+      track.load();
+
+      track.addEventListener('canplaythrough', () => {
+        if (!musicStartedRef.current && triedMusicRef.current) {
+          void startMusicNow();
+        }
+      });
 
       track.addEventListener('playing', () => {
         musicStartedRef.current = true;
         setStarted(true);
         setMissingFile(false);
+        setBlocked(false);
       });
 
       track.addEventListener('pause', () => {
         if (!track.ended) return;
+        musicStartedRef.current = false;
         setStarted(false);
       });
 
@@ -96,7 +117,37 @@ export default function SiteAudio() {
       return track;
     };
 
-    const playClick = (context: AudioContext) => {
+    const getClickPlayers = () => {
+      if (clickPlayersRef.current.length) return clickPlayersRef.current;
+
+      clickPlayersRef.current = Array.from({ length: CLICK_POOL_SIZE }, () => {
+        const audio = new Audio(CLICK_SOUND_PATH);
+        audio.preload = 'auto';
+        audio.volume = CLICK_VOLUME;
+        audio.load();
+        return audio;
+      });
+
+      return clickPlayersRef.current;
+    };
+
+    const preloadClickBuffer = async () => {
+      if (clickBufferRef.current || clickBufferLoadingRef.current) return;
+      clickBufferLoadingRef.current = true;
+
+      try {
+        const context = getContext();
+        const response = await fetch(CLICK_SOUND_PATH, { cache: 'force-cache' });
+        const arrayBuffer = await response.arrayBuffer();
+        clickBufferRef.current = await context.decodeAudioData(arrayBuffer.slice(0));
+      } catch {
+        clickBufferRef.current = null;
+      } finally {
+        clickBufferLoadingRef.current = false;
+      }
+    };
+
+    const playFallbackClick = (context: AudioContext) => {
       if (!masterGainRef.current) return;
 
       const time = context.currentTime;
@@ -105,65 +156,135 @@ export default function SiteAudio() {
       const filter = context.createBiquadFilter();
 
       oscillator.type = 'triangle';
-      oscillator.frequency.setValueAtTime(860, time);
-      oscillator.frequency.exponentialRampToValueAtTime(430, time + 0.1);
+      oscillator.frequency.setValueAtTime(980, time);
+      oscillator.frequency.exponentialRampToValueAtTime(420, time + 0.06);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(2800, time);
+      filter.frequency.setValueAtTime(3600, time);
 
       gain.gain.setValueAtTime(0.0001, time);
-      gain.gain.exponentialRampToValueAtTime(CLICK_VOLUME, time + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.13);
+      gain.gain.exponentialRampToValueAtTime(0.28, time + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.09);
 
       oscillator.connect(filter);
       filter.connect(gain);
       gain.connect(masterGainRef.current);
 
       oscillator.start(time);
-      oscillator.stop(time + 0.15);
+      oscillator.stop(time + 0.1);
     };
 
-    const startRealTrack = async () => {
-      const track = getTrack();
+    const playBufferClick = (context: AudioContext) => {
+      if (!clickBufferRef.current || !masterGainRef.current || context.state !== 'running') return false;
+
+      const source = context.createBufferSource();
+      const gain = context.createGain();
+      source.buffer = clickBufferRef.current;
+      gain.gain.value = CLICK_VOLUME;
+      source.connect(gain);
+      gain.connect(masterGainRef.current);
+      source.start(context.currentTime + 0.001);
+      return true;
+    };
+
+    const playHtmlClick = () => {
+      const players = getClickPlayers();
+      const player = players[clickIndexRef.current % players.length];
+      clickIndexRef.current += 1;
 
       try {
+        player.pause();
+        player.currentTime = 0;
+        player.volume = CLICK_VOLUME;
+        void player.play();
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    const playClickNow = (context: AudioContext) => {
+      if (playBufferClick(context)) return;
+      if (playHtmlClick()) return;
+      playFallbackClick(context);
+    };
+
+    const startMusicNow = async () => {
+      const track = getTrack();
+      triedMusicRef.current = true;
+
+      if (musicStartedRef.current) return true;
+
+      try {
+        track.muted = false;
+        track.volume = TRACK_VOLUME;
+
+        if (track.readyState === 0) {
+          track.load();
+        }
+
         await track.play();
         musicStartedRef.current = true;
         setStarted(true);
         setMissingFile(false);
+        setBlocked(false);
+        return true;
       } catch {
         musicStartedRef.current = false;
         setStarted(false);
-        setMissingFile(true);
+        setBlocked(true);
+        return false;
       }
     };
 
-    const activateAudio = async () => {
+    const activateMusicAndSound = (target: EventTarget | null, playClick: boolean) => {
       const context = getContext();
 
       if (context.state === 'suspended') {
-        await context.resume().catch(() => undefined);
+        void context.resume();
       }
 
-      if (!musicStartedRef.current) {
-        await startRealTrack();
+      // Start music immediately inside the user gesture. This is required on mobile browsers.
+      void startMusicNow();
+
+      if (playClick && target instanceof Element && target.closest(clickableSelector)) {
+        playClickNow(context);
       }
-
-      playClick(context);
     };
 
-    const handleClick = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (!target.closest(clickableSelector)) return;
-
-      void activateAudio();
+    const handlePointerDown = (event: PointerEvent) => {
+      activateMusicAndSound(event.target, true);
     };
 
-    document.addEventListener('click', handleClick, true);
+    const handleTouchStart = (event: TouchEvent) => {
+      activateMusicAndSound(event.target, true);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      activateMusicAndSound(event.target, true);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && triedMusicRef.current && !musicStartedRef.current) {
+        void startMusicNow();
+      }
+    };
+
+    getTrack();
+    getClickPlayers();
+    void preloadClickBuffer();
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+      document.removeEventListener('touchstart', handleTouchStart, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
 
       if (trackRef.current) {
         trackRef.current.pause();
@@ -171,37 +292,25 @@ export default function SiteAudio() {
         trackRef.current.load();
       }
 
+      clickPlayersRef.current.forEach((audio) => {
+        audio.pause();
+        audio.src = '';
+        audio.load();
+      });
+
       void contextRef.current?.close();
       contextRef.current = null;
       masterGainRef.current = null;
       trackRef.current = null;
+      clickPlayersRef.current = [];
+      clickBufferRef.current = null;
+      clickBufferLoadingRef.current = false;
       musicStartedRef.current = false;
+      triedMusicRef.current = false;
     };
   }, []);
 
-  return (
-    <button
-      type="button"
-      className="fixed bottom-5 left-4 z-40 hidden items-center gap-3 rounded-full border border-violet-500/25 bg-[#0b0714]/80 px-4 py-2.5 text-left shadow-[0_0_24px_rgba(139,92,246,0.18)] backdrop-blur-xl transition duration-300 hover:border-violet-400/55 hover:bg-[#120a23]/90 md:inline-flex"
-      aria-label={`Play ${TRACK_TITLE} by ${TRACK_ARTIST}`}
-    >
-      <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-violet-500/15 text-violet-200 ring-1 ring-violet-400/25">
-        <span className={`absolute inset-0 rounded-full bg-violet-500/20 ${started ? 'animate-ping' : ''}`} />
-        {missingFile ? <AlertCircle className="relative h-4 w-4 text-amber-200" /> : started ? <Volume2 className="relative h-4 w-4" /> : <Music2 className="relative h-4 w-4" />}
-      </span>
+  const label = started ? 'Now Playing' : blocked ? 'Tap to Start' : 'Music Ready';
 
-      <span className="leading-tight">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-violet-300/80">
-          {missingFile ? 'MP3 Missing' : started ? 'Now Playing' : 'Click to Play'}
-        </span>
-        <span className="block max-w-[220px] truncate text-sm font-bold text-white">
-          {TRACK_TITLE}
-          <span className="font-medium text-slate-400"> — {TRACK_ARTIST}</span>
-        </span>
-        {missingFile && (
-          <span className="block text-[10px] font-medium text-amber-200/75">Put the MP3 in public/music</span>
-        )}
-      </span>
-    </button>
-  );
+  return null;
 }

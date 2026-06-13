@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Globe2, Mail, MapPin } from 'lucide-react';
+import { smoothScrollToSection } from '../lib/smoothScroll';
+import footerLogo from '../assets/footer-logo.jpg';
 
 const footerLinks = [
   { name: 'Home', id: 'home' },
@@ -12,7 +14,7 @@ const footerLinks = [
 ];
 
 export default function Footer() {
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  const scrollTo = (id: string) => smoothScrollToSection(id, { offset: 84 });
 
   return (
     <footer className="relative overflow-hidden bg-[#06020d] text-white">
@@ -22,9 +24,9 @@ export default function Footer() {
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr_1fr]">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <button onClick={() => scrollTo('home')} className="mb-5 flex items-center gap-3">
-              <span className="relative inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-violet-300/20 bg-violet-500/10">
-                <span className="absolute inset-0 bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-500 opacity-80" />
-                <span className="relative text-base font-black text-white">S</span>
+              <span className="relative inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-violet-300/20 bg-violet-500/10 shadow-[0_14px_32px_rgba(139,92,246,0.18)]">
+                <img src={footerLogo} alt="Sokphal logo" className="h-full w-full object-cover" />
+                <span className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/10" />
               </span>
               <span className="text-lg font-black tracking-tight">&lt;Sokphal<span className="text-violet-400">/&gt;</span></span>
             </button>
@@ -47,8 +49,8 @@ export default function Footer() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.16 }}>
             <h3 className="mb-5 text-sm font-black uppercase tracking-[0.18em] text-violet-200/55">Get in Touch</h3>
             <div className="space-y-3 text-sm">
-              <a href="mailto:hello@example.com" className="flex items-center gap-3 rounded-2xl border border-violet-300/10 bg-white/[0.03] p-3 text-violet-100/65 transition hover:border-violet-300/25 hover:text-white">
-                <Mail className="h-4 w-4 text-violet-300" /> hello@example.com
+              <a href="mailto:phaltp1@gmail.com" className="flex items-center gap-3 rounded-2xl border border-violet-300/10 bg-white/[0.03] p-3 text-violet-100/65 transition hover:border-violet-300/25 hover:text-white">
+                <Mail className="h-4 w-4 text-violet-300" /> phaltp1@gmail.com
               </a>
               <div className="flex items-center gap-3 rounded-2xl border border-violet-300/10 bg-white/[0.03] p-3 text-violet-100/65">
                 <MapPin className="h-4 w-4 text-violet-300" /> Cambodia
