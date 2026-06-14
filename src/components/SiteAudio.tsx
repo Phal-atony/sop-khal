@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Music2, Volume2 } from 'lucide-react';
 
 const clickableSelector = [
   'button',
@@ -16,8 +15,6 @@ type WebAudioWindow = Window & typeof globalThis & {
   webkitAudioContext?: typeof AudioContext;
 };
 
-const TRACK_TITLE = 'In Dreamland';
-const TRACK_ARTIST = 'Chillpeach';
 const TRACK_FILE_PATH = `${import.meta.env.BASE_URL}music/in-dreamland-chillpeach.mp3`;
 const CLICK_SOUND_PATH = `${import.meta.env.BASE_URL}sounds/click.wav`;
 
@@ -43,9 +40,9 @@ export default function SiteAudio() {
   const musicStartedRef = useRef(false);
   const triedMusicRef = useRef(false);
 
-  const [started, setStarted] = useState(false);
-  const [missingFile, setMissingFile] = useState(false);
-  const [blocked, setBlocked] = useState(false);
+  const [, setStarted] = useState(false);
+  const [, setMissingFile] = useState(false);
+  const [, setBlocked] = useState(false);
 
   useEffect(() => {
     const audioWindow = window as WebAudioWindow;
@@ -309,8 +306,6 @@ export default function SiteAudio() {
       triedMusicRef.current = false;
     };
   }, []);
-
-  const label = started ? 'Now Playing' : blocked ? 'Tap to Start' : 'Music Ready';
 
   return null;
 }

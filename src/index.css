@@ -869,3 +869,22 @@ html.mouse-glow-touch .mouse-follow-effect__ring {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Premium purple canvas mouse effect */
+.smooth-purple-cursor-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  pointer-events: none;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  mix-blend-mode: screen;
+  contain: strict;
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .smooth-purple-cursor-canvas {
+    display: none;
+  }
+}
